@@ -281,13 +281,10 @@ public class WebSocketChannelClient {
         public void onTextMessage(String payload) {
             Log.d(TAG, "WSS->C: " + payload);
             final String message = payload;
-            handler.post(new Runnable() {
-                @Override
-                public void run() {
-                    if (state == WebSocketConnectionState.CONNECTED
-                            || state == WebSocketConnectionState.REGISTERED) {
-                        events.onWebSocketMessage(message);
-                    }
+            handler.post(() -> {
+                if (state == WebSocketConnectionState.CONNECTED
+                        || state == WebSocketConnectionState.REGISTERED) {
+                    events.onWebSocketMessage(message);
                 }
             });
         }

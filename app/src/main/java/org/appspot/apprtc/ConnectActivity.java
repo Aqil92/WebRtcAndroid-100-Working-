@@ -85,15 +85,12 @@ public class ConnectActivity extends Activity {
         setContentView(R.layout.activity_connect);
 
         roomEditText = findViewById(R.id.room_edittext);
-        roomEditText.setOnEditorActionListener(new TextView.OnEditorActionListener() {
-            @Override
-            public boolean onEditorAction(TextView textView, int i, KeyEvent keyEvent) {
-                if (i == EditorInfo.IME_ACTION_DONE) {
-                    addFavoriteButton.performClick();
-                    return true;
-                }
-                return false;
+        roomEditText.setOnEditorActionListener((textView, i, keyEvent) -> {
+            if (i == EditorInfo.IME_ACTION_DONE) {
+                addFavoriteButton.performClick();
+                return true;
             }
+            return false;
         });
         roomEditText.requestFocus();
 
@@ -174,7 +171,7 @@ public class ConnectActivity extends Activity {
         SharedPreferences.Editor editor = sharedPref.edit();
         editor.putString(keyprefRoom, room);
         editor.putString(keyprefRoomList, roomListJson);
-        editor.commit();
+        editor.apply();
     }
 
     @Override
@@ -277,24 +274,26 @@ public class ConnectActivity extends Activity {
             roomId = Integer.toString((new Random()).nextInt(100000000));
         }
 
-        String roomUrl = sharedPref.getString(
+     /*   String roomUrl = sharedPref.getString(
                 keyprefRoomServerUrl, getString(R.string.pref_room_server_url_default));
 
-        // Video call enabled flag.
-        boolean videoCallEnabled = sharedPrefGetBoolean(R.string.pref_videocall_key,
+                 boolean videoCallEnabled = sharedPrefGetBoolean(R.string.pref_videocall_key,
+
+                   // Video call enabled flag.
                 CallActivity.EXTRA_VIDEO_CALL, R.string.pref_videocall_default, useValuesFromIntent);
 
         // Use screencapture option.
         boolean useScreencapture = sharedPrefGetBoolean(R.string.pref_screencapture_key,
                 CallActivity.EXTRA_SCREENCAPTURE, R.string.pref_screencapture_default, useValuesFromIntent);
 
-        // Use Camera2 option.
+                  // Use Camera2 option.
         boolean useCamera2 = sharedPrefGetBoolean(R.string.pref_camera2_key, CallActivity.EXTRA_CAMERA2,
                 R.string.pref_camera2_default, useValuesFromIntent);
 
-        // Get default codecs.
+                  // Get default codecs.
         String videoCodec = sharedPrefGetString(R.string.pref_videocodec_key,
                 CallActivity.EXTRA_VIDEOCODEC, R.string.pref_videocodec_default, useValuesFromIntent);
+
         String audioCodec = sharedPrefGetString(R.string.pref_audiocodec_key,
                 CallActivity.EXTRA_AUDIOCODEC, R.string.pref_audiocodec_default, useValuesFromIntent);
 
@@ -311,7 +310,7 @@ public class ConnectActivity extends Activity {
         boolean flexfecEnabled = sharedPrefGetBoolean(R.string.pref_flexfec_key,
                 CallActivity.EXTRA_FLEXFEC_ENABLED, R.string.pref_flexfec_default, useValuesFromIntent);
 
-        // Check Disable Audio Processing flag.
+                  // Check Disable Audio Processing flag.
         boolean noAudioProcessing = sharedPrefGetBoolean(R.string.pref_noaudioprocessing_key,
                 CallActivity.EXTRA_NOAUDIOPROCESSING_ENABLED, R.string.pref_noaudioprocessing_default,
                 useValuesFromIntent);
@@ -329,7 +328,7 @@ public class ConnectActivity extends Activity {
                 CallActivity.EXTRA_DISABLE_BUILT_IN_AEC, R.string.pref_disable_built_in_aec_default,
                 useValuesFromIntent);
 
-        // Check Disable built-in AGC flag.
+                 // Check Disable built-in AGC flag.
         boolean disableBuiltInAGC = sharedPrefGetBoolean(R.string.pref_disable_built_in_agc_key,
                 CallActivity.EXTRA_DISABLE_BUILT_IN_AGC, R.string.pref_disable_built_in_agc_default,
                 useValuesFromIntent);
@@ -348,6 +347,69 @@ public class ConnectActivity extends Activity {
         boolean disableWebRtcAGCAndHPF = sharedPrefGetBoolean(
                 R.string.pref_disable_webrtc_agc_and_hpf_key, CallActivity.EXTRA_DISABLE_WEBRTC_AGC_AND_HPF,
                 R.string.pref_disable_webrtc_agc_and_hpf_key, useValuesFromIntent);
+
+                 // Check capture quality slider flag.
+        boolean captureQualitySlider = sharedPrefGetBoolean(R.string.pref_capturequalityslider_key,
+                CallActivity.EXTRA_VIDEO_CAPTUREQUALITYSLIDER_ENABLED,
+                R.string.pref_capturequalityslider_default, useValuesFromIntent);
+
+                   // Check statistics display option.
+        boolean displayHud = sharedPrefGetBoolean(R.string.pref_displayhud_key,
+                CallActivity.EXTRA_DISPLAY_HUD, R.string.pref_displayhud_default, useValuesFromIntent);
+
+        boolean tracing = sharedPrefGetBoolean(R.string.pref_tracing_key, CallActivity.EXTRA_TRACING,
+                R.string.pref_tracing_default, useValuesFromIntent);
+
+        // Get datachannel options
+        boolean dataChannelEnabled = sharedPrefGetBoolean(R.string.pref_enable_datachannel_key,
+                CallActivity.EXTRA_DATA_CHANNEL_ENABLED, R.string.pref_enable_datachannel_default,
+                useValuesFromIntent);
+        boolean ordered = sharedPrefGetBoolean(R.string.pref_ordered_key, CallActivity.EXTRA_ORDERED,
+                R.string.pref_ordered_default, useValuesFromIntent);
+        boolean negotiated = sharedPrefGetBoolean(R.string.pref_negotiated_key,
+                CallActivity.EXTRA_NEGOTIATED, R.string.pref_negotiated_default, useValuesFromIntent);
+
+                 int maxRetrMs = sharedPrefGetInteger(R.string.pref_max_retransmit_time_ms_key,
+                CallActivity.EXTRA_MAX_RETRANSMITS_MS, R.string.pref_max_retransmit_time_ms_default,
+                useValuesFromIntent);
+
+        int maxRetr =
+                sharedPrefGetInteger(R.string.pref_max_retransmits_key, CallActivity.EXTRA_MAX_RETRANSMITS,
+                        R.string.pref_max_retransmits_default, useValuesFromIntent);
+
+        int id = sharedPrefGetInteger(R.string.pref_data_id_key, CallActivity.EXTRA_ID,
+                R.string.pref_data_id_default, useValuesFromIntent);
+
+      */
+
+        String roomUrl=getString(R.string.pref_room_server_url_default);
+        String videoCodec=getString(R.string.pref_videocodec_default);
+        String audioCodec=getString(R.string.pref_audiocodec_default);
+        boolean videoCallEnabled=false;
+        boolean useScreencapture=false;
+        boolean captureToTexture=false;
+        boolean flexfecEnabled=false;
+        boolean noAudioProcessing=false;
+        boolean aecDump=false;
+        boolean useOpenSLES=false;
+        boolean disableBuiltInAEC=false;
+        boolean useCamera2=true;
+        boolean hwCodec=true;
+        boolean disableBuiltInAGC=false;
+        boolean disableBuiltInNS=false;
+        boolean enableLevelControl=false;
+        boolean disableWebRtcAGCAndHPF=false;
+        boolean captureQualitySlider=false;
+        boolean displayHud=false;
+        boolean tracing=false;
+        boolean dataChannelEnabled=false;
+        boolean ordered=true;
+        boolean negotiated=false;
+        String protocol="";
+        int  maxRetrMs=-1;
+        int  id=-1;
+        int  maxRetr=-1;
+
 
         // Get video resolution from settings.
         int videoWidth = 0;
@@ -390,11 +452,6 @@ public class ConnectActivity extends Activity {
             }
         }
 
-        // Check capture quality slider flag.
-        boolean captureQualitySlider = sharedPrefGetBoolean(R.string.pref_capturequalityslider_key,
-                CallActivity.EXTRA_VIDEO_CAPTUREQUALITYSLIDER_ENABLED,
-                R.string.pref_capturequalityslider_default, useValuesFromIntent);
-
         // Get video and audio start bitrate.
         int videoStartBitrate = 0;
         if (useValuesFromIntent) {
@@ -411,9 +468,10 @@ public class ConnectActivity extends Activity {
         }
 
         int audioStartBitrate = 0;
-        if (useValuesFromIntent) {
+
+        if (useValuesFromIntent)
             audioStartBitrate = getIntent().getIntExtra(CallActivity.EXTRA_AUDIO_BITRATE, 0);
-        }
+
         if (audioStartBitrate == 0) {
             String bitrateTypeDefault = getString(R.string.pref_startaudiobitrate_default);
             String bitrateType = sharedPref.getString(keyprefAudioBitrateType, bitrateTypeDefault);
@@ -423,32 +481,6 @@ public class ConnectActivity extends Activity {
                 audioStartBitrate = Integer.parseInt(bitrateValue);
             }
         }
-
-        // Check statistics display option.
-        boolean displayHud = sharedPrefGetBoolean(R.string.pref_displayhud_key,
-                CallActivity.EXTRA_DISPLAY_HUD, R.string.pref_displayhud_default, useValuesFromIntent);
-
-        boolean tracing = sharedPrefGetBoolean(R.string.pref_tracing_key, CallActivity.EXTRA_TRACING,
-                R.string.pref_tracing_default, useValuesFromIntent);
-
-        // Get datachannel options
-        boolean dataChannelEnabled = sharedPrefGetBoolean(R.string.pref_enable_datachannel_key,
-                CallActivity.EXTRA_DATA_CHANNEL_ENABLED, R.string.pref_enable_datachannel_default,
-                useValuesFromIntent);
-        boolean ordered = sharedPrefGetBoolean(R.string.pref_ordered_key, CallActivity.EXTRA_ORDERED,
-                R.string.pref_ordered_default, useValuesFromIntent);
-        boolean negotiated = sharedPrefGetBoolean(R.string.pref_negotiated_key,
-                CallActivity.EXTRA_NEGOTIATED, R.string.pref_negotiated_default, useValuesFromIntent);
-        int maxRetrMs = sharedPrefGetInteger(R.string.pref_max_retransmit_time_ms_key,
-                CallActivity.EXTRA_MAX_RETRANSMITS_MS, R.string.pref_max_retransmit_time_ms_default,
-                useValuesFromIntent);
-        int maxRetr =
-                sharedPrefGetInteger(R.string.pref_max_retransmits_key, CallActivity.EXTRA_MAX_RETRANSMITS,
-                        R.string.pref_max_retransmits_default, useValuesFromIntent);
-        int id = sharedPrefGetInteger(R.string.pref_data_id_key, CallActivity.EXTRA_ID,
-                R.string.pref_data_id_default, useValuesFromIntent);
-        String protocol = sharedPrefGetString(R.string.pref_data_protocol_key,
-                CallActivity.EXTRA_PROTOCOL, R.string.pref_data_protocol_default, useValuesFromIntent);
 
         // Start AppRTCMobile activity.
         Log.d(TAG, "Connecting to room " + roomId + " at URL " + roomUrl);
@@ -486,15 +518,6 @@ public class ConnectActivity extends Activity {
             intent.putExtra(CallActivity.EXTRA_RUNTIME, runTimeMs);
 
             intent.putExtra(CallActivity.EXTRA_DATA_CHANNEL_ENABLED, dataChannelEnabled);
-
-            if (dataChannelEnabled) {
-                intent.putExtra(CallActivity.EXTRA_ORDERED, ordered);
-                intent.putExtra(CallActivity.EXTRA_MAX_RETRANSMITS_MS, maxRetrMs);
-                intent.putExtra(CallActivity.EXTRA_MAX_RETRANSMITS, maxRetr);
-                intent.putExtra(CallActivity.EXTRA_PROTOCOL, protocol);
-                intent.putExtra(CallActivity.EXTRA_NEGOTIATED, negotiated);
-                intent.putExtra(CallActivity.EXTRA_ID, id);
-            }
 
             if (useValuesFromIntent) {
                 if (getIntent().hasExtra(CallActivity.EXTRA_VIDEO_FILE_AS_CAMERA)) {
@@ -536,24 +559,16 @@ public class ConnectActivity extends Activity {
                 .setMessage(getString(R.string.invalid_url_text, url))
                 .setCancelable(false)
                 .setNeutralButton(R.string.ok,
-                        new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int id) {
-                                dialog.cancel();
-                            }
-                        })
+                        (dialog, id) -> dialog.cancel())
                 .create()
                 .show();
         return false;
     }
 
     private final AdapterView.OnItemClickListener roomListClickListener =
-            new AdapterView.OnItemClickListener() {
-                @Override
-                public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                    String roomId = ((TextView) view).getText().toString();
-                    connectToRoom(roomId, false, false, false, 0);
-                }
+            (adapterView, view, i, l) -> {
+                String roomId = ((TextView) view).getText().toString();
+                connectToRoom(roomId, false, false, false, 0);
             };
 
     private final OnClickListener addFavoriteListener = new OnClickListener() {

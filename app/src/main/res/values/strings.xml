@@ -38,7 +38,7 @@
     <string name="pref_videocall_key">videocall_preference</string>
     <string name="pref_videocall_title">Video call.</string>
     <string name="pref_videocall_dlg">Enable video in a call.</string>
-    <string name="pref_videocall_default">true</string>
+    <string name="pref_videocall_default">false</string>
 
     <string name="pref_screencapture_key">screencapture_preference</string>
     <string name="pref_screencapture_title">Use screencapture.</string>
@@ -159,7 +159,7 @@
     <string name="pref_speakerphone_key">speakerphone_preference</string>
     <string name="pref_speakerphone_title">Speakerphone.</string>
     <string name="pref_speakerphone_dlg">Speakerphone.</string>
-    <string name="pref_speakerphone_default">auto</string>
+    <string name="pref_speakerphone_default">false</string>
 
     <string name="pref_datasettings_key">data_settings_key</string>
     <string name="pref_datasettings_title">WebRTC data channel settings.</string>

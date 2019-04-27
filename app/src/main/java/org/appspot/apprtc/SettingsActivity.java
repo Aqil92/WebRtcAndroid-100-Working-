@@ -16,6 +16,7 @@ import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.os.Bundle;
 import android.preference.ListPreference;
 import android.preference.Preference;
+import android.util.Log;
 
 import org.webrtc.Camera2Enumerator;
 import org.webrtc.voiceengine.WebRtcAudioUtils;
@@ -208,6 +209,9 @@ public class SettingsActivity extends Activity implements OnSharedPreferenceChan
     @Override
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
         // clang-format off
+
+        Log.v("onSharedPreferenc",sharedPreferences.getAll()+" "+key);
+
         if (key.equals(keyprefResolution)
                 || key.equals(keyprefFps)
                 || key.equals(keyprefMaxVideoBitrateType)

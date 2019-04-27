@@ -155,7 +155,7 @@ public class CallActivity extends Activity implements AppRTCClient.SignalingEven
             target.renderFrame(frame);
         }
 
-        synchronized public void setTarget(VideoRenderer.Callbacks target) {
+        synchronized void setTarget(VideoRenderer.Callbacks target) {
             this.target = target;
         }
     }
@@ -173,7 +173,7 @@ public class CallActivity extends Activity implements AppRTCClient.SignalingEven
             target.onFrame(frame);
         }
 
-        synchronized public void setTarget(VideoSink target) {
+        synchronized  void setTarget(VideoSink target) {
             this.target = target;
         }
     }
@@ -858,12 +858,9 @@ public class CallActivity extends Activity implements AppRTCClient.SignalingEven
 
     @Override
     public void onChannelClose() {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                logAndToast("Remote end hung up; dropping PeerConnection");
-                disconnect();
-            }
+        runOnUiThread(() -> {
+            logAndToast("Remote end hung up; dropping PeerConnection");
+            disconnect();
         });
     }
 
@@ -879,21 +876,18 @@ public class CallActivity extends Activity implements AppRTCClient.SignalingEven
     @Override
     public void onLocalDescription(final SessionDescription sdp) {
         final long delta = System.currentTimeMillis() - callStartedTimeMs;
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                if (appRtcClient != null) {
-                    logAndToast("Sending " + sdp.type + ", delay=" + delta + "ms");
-                    if (signalingParameters.initiator) {
-                        appRtcClient.sendOfferSdp(sdp);
-                    } else {
-                        appRtcClient.sendAnswerSdp(sdp);
-                    }
+        runOnUiThread(() -> {
+            if (appRtcClient != null) {
+                logAndToast("Sending " + sdp.type + ", delay=" + delta + "ms");
+                if (signalingParameters.initiator) {
+                    appRtcClient.sendOfferSdp(sdp);
+                } else {
+                    appRtcClient.sendAnswerSdp(sdp);
                 }
-                if (peerConnectionParameters.videoMaxBitrate > 0) {
-                    Log.d(TAG, "Set video maximum bitrate: " + peerConnectionParameters.videoMaxBitrate);
-                    peerConnectionClient.setVideoMaxBitrate(peerConnectionParameters.videoMaxBitrate);
-                }
+            }
+            if (peerConnectionParameters.videoMaxBitrate > 0) {
+                Log.d(TAG, "Set video maximum bitrate: " + peerConnectionParameters.videoMaxBitrate);
+                peerConnectionClient.setVideoMaxBitrate(peerConnectionParameters.videoMaxBitrate);
             }
         });
     }
@@ -953,12 +947,9 @@ public class CallActivity extends Activity implements AppRTCClient.SignalingEven
 
     @Override
     public void onPeerConnectionStatsReady(final StatsReport[] reports) {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                if (!isError && iceConnected) {
-                    hudFragment.updateEncoderStatistics(reports);
-                }
+        runOnUiThread(() -> {
+            if (!isError && iceConnected) {
+                hudFragment.updateEncoderStatistics(reports);
             }
         });
     }

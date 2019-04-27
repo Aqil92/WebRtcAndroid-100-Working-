@@ -69,7 +69,7 @@ public class AppRTCBluetoothManager {
     private final AudioManager audioManager;
     private final Handler handler;
 
-    int scoConnectionAttempts;
+    private int scoConnectionAttempts;
     private State bluetoothState;
     private final BluetoothProfile.ServiceListener bluetoothServiceListener;
     private BluetoothAdapter bluetoothAdapter;

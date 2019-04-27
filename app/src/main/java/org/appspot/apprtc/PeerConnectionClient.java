@@ -162,11 +162,11 @@ public class PeerConnectionClient {
      * Peer connection parameters.
      */
     public static class DataChannelParameters {
-        public final boolean ordered;
-        public final int maxRetransmitTimeMs;
-        public final int maxRetransmits;
-        public final String protocol;
-        public final boolean negotiated;
+        final boolean ordered;
+        final int maxRetransmitTimeMs;
+        final int maxRetransmits;
+        final String protocol;
+        final boolean negotiated;
         public final int id;
 
         public DataChannelParameters(boolean ordered, int maxRetransmitTimeMs, int maxRetransmits,
