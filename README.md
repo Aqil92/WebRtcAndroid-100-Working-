@@ -35,7 +35,7 @@ let's excute cmds like the follow tips:
 
 ```
 #!/bin/bash
-#duqian2010@gmail.com
+#aqil.mohd.92@gmail.com
 
 export PATH=$PATH:~/webrtc/depot_tools
 
