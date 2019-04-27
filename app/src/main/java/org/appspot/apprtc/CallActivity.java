@@ -140,6 +140,7 @@ public class CallActivity extends Activity implements AppRTCClient.SignalingEven
 
     // Peer connection statistics callback period in ms.
     private static final int STAT_CALLBACK_PERIOD = 1000;
+    public static String roomId="";
 
     private static class ProxyRenderer implements VideoRenderer.Callbacks {
         private VideoRenderer.Callbacks target;
@@ -189,7 +190,6 @@ public class CallActivity extends Activity implements AppRTCClient.SignalingEven
     private VideoFileRenderer videoFileRenderer;
     private final List<VideoRenderer.Callbacks> remoteRenderers = new ArrayList<>();
     private Toast logToast;
-    private boolean commandLineRun;
     private boolean activityRunning;
     private RoomConnectionParameters roomConnectionParameters;
     private PeerConnectionParameters peerConnectionParameters;
@@ -199,8 +199,6 @@ public class CallActivity extends Activity implements AppRTCClient.SignalingEven
     private long callStartedTimeMs = 0;
     private boolean micEnabled = true;
     private boolean screencaptureEnabled = false;
-    private static Intent mediaProjectionPermissionResultData;
-    private static int mediaProjectionPermissionResultCode;
     // True if local view is in the fullscreen renderer.
     private boolean isSwappedFeeds;
 
@@ -232,20 +230,10 @@ public class CallActivity extends Activity implements AppRTCClient.SignalingEven
         hudFragment = new HudFragment();
 
         // Show/hide call control fragment on view click.
-        View.OnClickListener listener = new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                toggleCallControlFragmentVisibility();
-            }
-        };
+        View.OnClickListener listener = view -> toggleCallControlFragmentVisibility();
 
         // Swap feeds on pip view click.
-        pipRenderer.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                setSwappedFeeds(!isSwappedFeeds);
-            }
-        });
+        pipRenderer.setOnClickListener(view -> setSwappedFeeds(!isSwappedFeeds));
 
         fullscreenRenderer.setOnClickListener(listener);
         remoteRenderers.add(remoteProxyRenderer);
@@ -258,21 +246,8 @@ public class CallActivity extends Activity implements AppRTCClient.SignalingEven
         // Create video renderers.
         pipRenderer.init(peerConnectionClient.getRenderContext(), null);
         pipRenderer.setScalingType(ScalingType.SCALE_ASPECT_FIT);
-        String saveRemoteVideoToFile = intent.getStringExtra(EXTRA_SAVE_REMOTE_VIDEO_TO_FILE);
 
-        // When saveRemoteVideoToFile is set we save the video from the remote to a file.
-        if (saveRemoteVideoToFile != null) {
-            int videoOutWidth = intent.getIntExtra(EXTRA_SAVE_REMOTE_VIDEO_TO_FILE_WIDTH, 0);
-            int videoOutHeight = intent.getIntExtra(EXTRA_SAVE_REMOTE_VIDEO_TO_FILE_HEIGHT, 0);
-            try {
-                videoFileRenderer = new VideoFileRenderer(saveRemoteVideoToFile, videoOutWidth,
-                        videoOutHeight, peerConnectionClient.getRenderContext());
-                remoteRenderers.add(videoFileRenderer);
-            } catch (IOException e) {
-                throw new RuntimeException(
-                        "Failed to open video file for output: " + saveRemoteVideoToFile, e);
-            }
-        }
+
         fullscreenRenderer.init(peerConnectionClient.getRenderContext(), null);
         fullscreenRenderer.setScalingType(ScalingType.SCALE_ASPECT_FILL);
 
@@ -282,137 +257,59 @@ public class CallActivity extends Activity implements AppRTCClient.SignalingEven
         // Start with local feed in fullscreen and swap it to the pip when the call is connected.
         setSwappedFeeds(true /* isSwappedFeeds */);
 
-        // Check for mandatory permissions.
-        for (String permission : MANDATORY_PERMISSIONS) {
-            if (checkCallingOrSelfPermission(permission) != PackageManager.PERMISSION_GRANTED) {
-                logAndToast("Permission " + permission + " is not granted");
-                setResult(RESULT_CANCELED);
-                finish();
-                return;
-            }
-        }
 
-        Uri roomUri = intent.getData();
-        if (roomUri == null) {
-            logAndToast(getString(R.string.missing_url));
-            Log.e(TAG, "Didn't get any URL in intent!");
-            setResult(RESULT_CANCELED);
-            finish();
-            return;
-        }
-
-        // Get Intent parameters.
-        String roomId = intent.getStringExtra(EXTRA_ROOMID);
-        Log.d(TAG, "Room ID: " + roomId);
-        if (roomId == null || roomId.length() == 0) {
-            logAndToast(getString(R.string.missing_url));
-            Log.e(TAG, "Incorrect room ID in intent!");
-            setResult(RESULT_CANCELED);
-            finish();
-            return;
-        }
-
-        boolean loopback = intent.getBooleanExtra(EXTRA_LOOPBACK, false);
-        boolean tracing = intent.getBooleanExtra(EXTRA_TRACING, false);
-
-        int videoWidth = intent.getIntExtra(EXTRA_VIDEO_WIDTH, 0);
-        int videoHeight = intent.getIntExtra(EXTRA_VIDEO_HEIGHT, 0);
-
-        screencaptureEnabled = intent.getBooleanExtra(EXTRA_SCREENCAPTURE, false);
-        // If capturing format is not specified for screencapture, use screen resolution.
-        if (screencaptureEnabled && videoWidth == 0 && videoHeight == 0) {
-            DisplayMetrics displayMetrics = getDisplayMetrics();
-            videoWidth = displayMetrics.widthPixels;
-            videoHeight = displayMetrics.heightPixels;
-        }
-        DataChannelParameters dataChannelParameters = null;
-        if (intent.getBooleanExtra(EXTRA_DATA_CHANNEL_ENABLED, false)) {
-            dataChannelParameters = new DataChannelParameters(intent.getBooleanExtra(EXTRA_ORDERED, true),
-                    intent.getIntExtra(EXTRA_MAX_RETRANSMITS_MS, -1),
-                    intent.getIntExtra(EXTRA_MAX_RETRANSMITS, -1), intent.getStringExtra(EXTRA_PROTOCOL),
-                    intent.getBooleanExtra(EXTRA_NEGOTIATED, false), intent.getIntExtra(EXTRA_ID, -1));
-        }
         peerConnectionParameters =
-                new PeerConnectionParameters(intent.getBooleanExtra(EXTRA_VIDEO_CALL, true), loopback,
-                        tracing, videoWidth, videoHeight, intent.getIntExtra(EXTRA_VIDEO_FPS, 0),
-                        intent.getIntExtra(EXTRA_VIDEO_BITRATE, 0), intent.getStringExtra(EXTRA_VIDEOCODEC),
-                        intent.getBooleanExtra(EXTRA_HWCODEC_ENABLED, true),
-                        intent.getBooleanExtra(EXTRA_FLEXFEC_ENABLED, false),
-                        intent.getIntExtra(EXTRA_AUDIO_BITRATE, 0), intent.getStringExtra(EXTRA_AUDIOCODEC),
-                        intent.getBooleanExtra(EXTRA_NOAUDIOPROCESSING_ENABLED, false),
-                        intent.getBooleanExtra(EXTRA_AECDUMP_ENABLED, false),
-                        intent.getBooleanExtra(EXTRA_OPENSLES_ENABLED, false),
-                        intent.getBooleanExtra(EXTRA_DISABLE_BUILT_IN_AEC, false),
-                        intent.getBooleanExtra(EXTRA_DISABLE_BUILT_IN_AGC, false),
-                        intent.getBooleanExtra(EXTRA_DISABLE_BUILT_IN_NS, false),
-                        intent.getBooleanExtra(EXTRA_ENABLE_LEVEL_CONTROL, false),
-                        intent.getBooleanExtra(EXTRA_DISABLE_WEBRTC_AGC_AND_HPF, false), dataChannelParameters);
-        commandLineRun = intent.getBooleanExtra(EXTRA_CMDLINE, false);
-        int runTimeMs = intent.getIntExtra(EXTRA_RUNTIME, 0);
-
-        Log.d(TAG, "VIDEO_FILE: '" + intent.getStringExtra(EXTRA_VIDEO_FILE_AS_CAMERA) + "'");
+                new PeerConnectionParameters(
+                        false,
+                        false,
+                        false, 0, 0,0,
+                        0,
+                        getString(R.string.pref_videocodec_default),
+                        true,
+                        false,
+                        0,
+                        getString(R.string.pref_audiocodec_default),
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        null);
 
         // Create connection client. Use DirectRTCClient if room name is an IP otherwise use the
         // standard WebSocketRTCClient.
-        if (loopback || !DirectRTCClient.IP_PATTERN.matcher(roomId).matches()) {
-            appRtcClient = new WebSocketRTCClient(this);
-        } else {
-            Log.i(TAG, "Using DirectRTCClient because room name looks like an IP.");
             appRtcClient = new DirectRTCClient(this);
-        }
+
         // Create connection parameters.
-        String urlParameters = intent.getStringExtra(EXTRA_URLPARAMETERS);
+
         roomConnectionParameters =
-                new RoomConnectionParameters(roomUri.toString(), roomId, loopback, urlParameters);
+                new RoomConnectionParameters( getString(R.string.pref_room_server_url_default),  roomId, false, null);
 
         // Create CPU monitor
-        if (cpuMonitor.isSupported()) {
+        if (CpuMonitor.isSupported()) {
             cpuMonitor = new CpuMonitor(this);
             hudFragment.setCpuMonitor(cpuMonitor);
         }
 
-        // Send intent arguments to fragments.
-        callFragment.setArguments(intent.getExtras());
-        hudFragment.setArguments(intent.getExtras());
+
         // Activate call and HUD fragments and start the call.
         FragmentTransaction ft = getFragmentManager().beginTransaction();
         ft.add(R.id.call_fragment_container, callFragment);
         ft.add(R.id.hud_fragment_container, hudFragment);
         ft.commit();
 
-        // For command line execution run connection for <runTimeMs> and exit.
-        if (commandLineRun && runTimeMs > 0) {
-            (new Handler()).postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    disconnect();
-                }
-            }, runTimeMs);
-        }
 
-        if (loopback) {
-            PeerConnectionFactory.Options options = new PeerConnectionFactory.Options();
-            options.networkIgnoreMask = 0;
-            peerConnectionClient.setPeerConnectionFactoryOptions(options);
-        }
         peerConnectionClient.createPeerConnectionFactory(
                 getApplicationContext(), peerConnectionParameters, CallActivity.this);
 
-        if (screencaptureEnabled) {
-            startScreenCapture();
-        } else {
+
             startCall();
-        }
+
     }
 
-    @TargetApi(17)
-    private DisplayMetrics getDisplayMetrics() {
-        DisplayMetrics displayMetrics = new DisplayMetrics();
-        WindowManager windowManager =
-                (WindowManager) getApplication().getSystemService(Context.WINDOW_SERVICE);
-        windowManager.getDefaultDisplay().getRealMetrics(displayMetrics);
-        return displayMetrics;
-    }
 
     @TargetApi(19)
     private static int getSystemUiVisibility() {
@@ -423,78 +320,7 @@ public class CallActivity extends Activity implements AppRTCClient.SignalingEven
         return flags;
     }
 
-    @TargetApi(21)
-    private void startScreenCapture() {
-        MediaProjectionManager mediaProjectionManager =
-                (MediaProjectionManager) getApplication().getSystemService(
-                        Context.MEDIA_PROJECTION_SERVICE);
-        startActivityForResult(
-                mediaProjectionManager.createScreenCaptureIntent(), CAPTURE_PERMISSION_REQUEST_CODE);
-    }
 
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode != CAPTURE_PERMISSION_REQUEST_CODE)
-            return;
-        mediaProjectionPermissionResultCode = resultCode;
-        mediaProjectionPermissionResultData = data;
-        startCall();
-    }
-
-    private boolean useCamera2() {
-        return Camera2Enumerator.isSupported(this) && getIntent().getBooleanExtra(EXTRA_CAMERA2, true);
-    }
-
-    private boolean captureToTexture() {
-        return getIntent().getBooleanExtra(EXTRA_CAPTURETOTEXTURE_ENABLED, false);
-    }
-
-    private VideoCapturer createCameraCapturer(CameraEnumerator enumerator) {
-        final String[] deviceNames = enumerator.getDeviceNames();
-
-        // First, try to find front facing camera
-        Logging.d(TAG, "Looking for front facing cameras.");
-        for (String deviceName : deviceNames) {
-            if (enumerator.isFrontFacing(deviceName)) {
-                Logging.d(TAG, "Creating front facing camera capturer.");
-                VideoCapturer videoCapturer = enumerator.createCapturer(deviceName, null);
-
-                if (videoCapturer != null) {
-                    return videoCapturer;
-                }
-            }
-        }
-
-        // Front facing camera not found, try something else
-        Logging.d(TAG, "Looking for other cameras.");
-        for (String deviceName : deviceNames) {
-            if (!enumerator.isFrontFacing(deviceName)) {
-                Logging.d(TAG, "Creating other camera capturer.");
-                VideoCapturer videoCapturer = enumerator.createCapturer(deviceName, null);
-
-                if (videoCapturer != null) {
-                    return videoCapturer;
-                }
-            }
-        }
-
-        return null;
-    }
-
-    @TargetApi(21)
-    private VideoCapturer createScreenCapturer() {
-        if (mediaProjectionPermissionResultCode != Activity.RESULT_OK) {
-            reportError("User didn't give permission to capture the screen.");
-            return null;
-        }
-        return new ScreenCapturerAndroid(
-                mediaProjectionPermissionResultData, new MediaProjection.Callback() {
-            @Override
-            public void onStop() {
-                reportError("User revoked permission to capture the screen.");
-            }
-        });
-    }
 
     // Activity interfaces
     @Override
@@ -676,7 +502,7 @@ public class CallActivity extends Activity implements AppRTCClient.SignalingEven
     }
 
     private void disconnectWithErrorMessage(final String errorMessage) {
-        if (commandLineRun || !activityRunning) {
+        if (!activityRunning) {
             Log.e(TAG, "Critical error: " + errorMessage);
             disconnect();
         } else {
@@ -685,12 +511,9 @@ public class CallActivity extends Activity implements AppRTCClient.SignalingEven
                     .setMessage(errorMessage)
                     .setCancelable(false)
                     .setNeutralButton(R.string.ok,
-                            new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int id) {
-                                    dialog.cancel();
-                                    disconnect();
-                                }
+                            (dialog, id) -> {
+                                dialog.cancel();
+                                disconnect();
                             })
                     .create()
                     .show();
@@ -708,46 +531,12 @@ public class CallActivity extends Activity implements AppRTCClient.SignalingEven
     }
 
     private void reportError(final String description) {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                if (!isError) {
-                    isError = true;
-                    disconnectWithErrorMessage(description);
-                }
+        runOnUiThread(() -> {
+            if (!isError) {
+                isError = true;
+                disconnectWithErrorMessage(description);
             }
         });
-    }
-
-    private VideoCapturer createVideoCapturer() {
-        final VideoCapturer videoCapturer;
-        String videoFileAsCamera = getIntent().getStringExtra(EXTRA_VIDEO_FILE_AS_CAMERA);
-        if (videoFileAsCamera != null) {
-            try {
-                videoCapturer = new FileVideoCapturer(videoFileAsCamera);
-            } catch (IOException e) {
-                reportError("Failed to open video file for emulated camera");
-                return null;
-            }
-        } else if (screencaptureEnabled) {
-            return createScreenCapturer();
-        } else if (useCamera2()) {
-            if (!captureToTexture()) {
-                reportError(getString(R.string.camera2_texture_only_error));
-                return null;
-            }
-
-            Logging.d(TAG, "Creating capturer using camera2 API.");
-            videoCapturer = createCameraCapturer(new Camera2Enumerator(this));
-        } else {
-            Logging.d(TAG, "Creating capturer using camera1 API.");
-            videoCapturer = createCameraCapturer(new Camera1Enumerator(captureToTexture()));
-        }
-        if (videoCapturer == null) {
-            reportError("Failed to open camera");
-            return null;
-        }
-        return videoCapturer;
     }
 
     private void setSwappedFeeds(boolean isSwappedFeeds) {
@@ -767,12 +556,9 @@ public class CallActivity extends Activity implements AppRTCClient.SignalingEven
 
         signalingParameters = params;
         logAndToast("Creating peer connection, delay=" + delta + "ms");
-        VideoCapturer videoCapturer = null;
-        if (peerConnectionParameters.videoCallEnabled) {
-            videoCapturer = createVideoCapturer();
-        }
+
         peerConnectionClient.createPeerConnection(
-                localProxyVideoSink, remoteRenderers, videoCapturer, signalingParameters);
+                localProxyVideoSink, remoteRenderers, null, signalingParameters);
 
         if (signalingParameters.initiator) {
             logAndToast("Creating OFFER...");
@@ -798,61 +584,47 @@ public class CallActivity extends Activity implements AppRTCClient.SignalingEven
 
     @Override
     public void onConnectedToRoom(final SignalingParameters params) {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                onConnectedToRoomInternal(params);
-            }
-        });
+        runOnUiThread(() -> onConnectedToRoomInternal(params));
     }
 
     @Override
     public void onRemoteDescription(final SessionDescription sdp) {
         final long delta = System.currentTimeMillis() - callStartedTimeMs;
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                if (peerConnectionClient == null) {
-                    Log.e(TAG, "Received remote SDP for non-initilized peer connection.");
-                    return;
-                }
-                logAndToast("Received remote " + sdp.type + ", delay=" + delta + "ms");
-                peerConnectionClient.setRemoteDescription(sdp);
-                if (!signalingParameters.initiator) {
-                    logAndToast("Creating ANSWER...");
-                    // Create answer. Answer SDP will be sent to offering client in
-                    // PeerConnectionEvents.onLocalDescription event.
-                    peerConnectionClient.createAnswer();
-                }
+        runOnUiThread(() -> {
+            if (peerConnectionClient == null) {
+                Log.e(TAG, "Received remote SDP for non-initilized peer connection.");
+                return;
+            }
+            logAndToast("Received remote " + sdp.type + ", delay=" + delta + "ms");
+            peerConnectionClient.setRemoteDescription(sdp);
+            if (!signalingParameters.initiator) {
+                logAndToast("Creating ANSWER...");
+                // Create answer. Answer SDP will be sent to offering client in
+                // PeerConnectionEvents.onLocalDescription event.
+                peerConnectionClient.createAnswer();
             }
         });
     }
 
     @Override
     public void onRemoteIceCandidate(final IceCandidate candidate) {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                if (peerConnectionClient == null) {
-                    Log.e(TAG, "Received ICE candidate for a non-initialized peer connection.");
-                    return;
-                }
-                peerConnectionClient.addRemoteIceCandidate(candidate);
+        runOnUiThread(() -> {
+            if (peerConnectionClient == null) {
+                Log.e(TAG, "Received ICE candidate for a non-initialized peer connection.");
+                return;
             }
+            peerConnectionClient.addRemoteIceCandidate(candidate);
         });
     }
 
     @Override
     public void onRemoteIceCandidatesRemoved(final IceCandidate[] candidates) {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                if (peerConnectionClient == null) {
-                    Log.e(TAG, "Received ICE candidate removals for a non-initialized peer connection.");
-                    return;
-                }
-                peerConnectionClient.removeRemoteIceCandidates(candidates);
+        runOnUiThread(() -> {
+            if (peerConnectionClient == null) {
+                Log.e(TAG, "Received ICE candidate removals for a non-initialized peer connection.");
+                return;
             }
+            peerConnectionClient.removeRemoteIceCandidates(candidates);
         });
     }
 
@@ -894,24 +666,18 @@ public class CallActivity extends Activity implements AppRTCClient.SignalingEven
 
     @Override
     public void onIceCandidate(final IceCandidate candidate) {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                if (appRtcClient != null) {
-                    appRtcClient.sendLocalIceCandidate(candidate);
-                }
+        runOnUiThread(() -> {
+            if (appRtcClient != null) {
+                appRtcClient.sendLocalIceCandidate(candidate);
             }
         });
     }
 
     @Override
     public void onIceCandidatesRemoved(final IceCandidate[] candidates) {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                if (appRtcClient != null) {
-                    appRtcClient.sendLocalIceCandidateRemovals(candidates);
-                }
+        runOnUiThread(() -> {
+            if (appRtcClient != null) {
+                appRtcClient.sendLocalIceCandidateRemovals(candidates);
             }
         });
     }
@@ -919,25 +685,19 @@ public class CallActivity extends Activity implements AppRTCClient.SignalingEven
     @Override
     public void onIceConnected() {
         final long delta = System.currentTimeMillis() - callStartedTimeMs;
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                logAndToast("ICE connected, delay=" + delta + "ms");
-                iceConnected = true;
-                callConnected();
-            }
+        runOnUiThread(() -> {
+            logAndToast("ICE connected, delay=" + delta + "ms");
+            iceConnected = true;
+            callConnected();
         });
     }
 
     @Override
     public void onIceDisconnected() {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                logAndToast("ICE disconnected");
-                iceConnected = false;
-                disconnect();
-            }
+        runOnUiThread(() -> {
+            logAndToast("ICE disconnected");
+            iceConnected = false;
+            disconnect();
         });
     }
 

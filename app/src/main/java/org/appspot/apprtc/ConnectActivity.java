@@ -78,7 +78,7 @@ public class ConnectActivity extends Activity {
         keyprefVideoBitrateValue = getString(R.string.pref_maxvideobitratevalue_key);
         keyprefAudioBitrateType = getString(R.string.pref_startaudiobitrate_key);
         keyprefAudioBitrateValue = getString(R.string.pref_startaudiobitratevalue_key);
-        keyprefRoomServerUrl = getString(R.string.pref_room_server_url_key);
+        //keyprefRoomServerUrl = getString(R.string.pref_room_server_url_key);
         keyprefRoom = getString(R.string.pref_room_key);
         keyprefRoomList = getString(R.string.pref_room_list_key);
 
@@ -148,7 +148,7 @@ public class ConnectActivity extends Activity {
         return super.onContextItemSelected(item);
     }
 
-    @Override
+  /*  @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle presses on the action bar items.
         if (item.getItemId() == R.id.action_settings) {
@@ -161,7 +161,7 @@ public class ConnectActivity extends Activity {
         } else {
             return super.onOptionsItemSelected(item);
         }
-    }
+    }*/
 
     @Override
     public void onPause() {
@@ -208,11 +208,11 @@ public class ConnectActivity extends Activity {
             finish();
         }
     }
-
-    /**
+/*
+    *//**
      * Get a value from the shared preference or from the intent, if it does not
      * exist the default is used.
-     */
+     *//*
     private String sharedPrefGetString(
             int attributeId, String intentName, int defaultId, boolean useFromIntent) {
         String defaultValue = getString(defaultId);
@@ -228,7 +228,7 @@ public class ConnectActivity extends Activity {
         }
     }
 
-    /**
+    *//**
      * Get a value from the shared preference or from the intent, if it does not
      * exist the default is used.
      */
@@ -274,7 +274,7 @@ public class ConnectActivity extends Activity {
             roomId = Integer.toString((new Random()).nextInt(100000000));
         }
 
-     /*   String roomUrl = sharedPref.getString(
+       /* String roomUrl = sharedPref.getString(
                 keyprefRoomServerUrl, getString(R.string.pref_room_server_url_default));
 
                  boolean videoCallEnabled = sharedPrefGetBoolean(R.string.pref_videocall_key,
@@ -378,9 +378,9 @@ public class ConnectActivity extends Activity {
                         R.string.pref_max_retransmits_default, useValuesFromIntent);
 
         int id = sharedPrefGetInteger(R.string.pref_data_id_key, CallActivity.EXTRA_ID,
-                R.string.pref_data_id_default, useValuesFromIntent);
+                R.string.pref_data_id_default, useValuesFromIntent);*/
 
-      */
+
 
         String roomUrl=getString(R.string.pref_room_server_url_default);
         String videoCodec=getString(R.string.pref_videocodec_default);
@@ -484,19 +484,22 @@ public class ConnectActivity extends Activity {
 
         // Start AppRTCMobile activity.
         Log.d(TAG, "Connecting to room " + roomId + " at URL " + roomUrl);
+        Log.v("Connecting","videoWidth "+videoWidth);
+        Log.v("Connecting","videoHeight "+videoHeight);
+        Log.v("Connecting","cameraFps "+cameraFps);
         if (validateUrl(roomUrl)) {
             Uri uri = Uri.parse(roomUrl);
             Intent intent = new Intent(this, CallActivity.class);
             intent.setData(uri);
-            intent.putExtra(CallActivity.EXTRA_ROOMID, roomId);
-            intent.putExtra(CallActivity.EXTRA_LOOPBACK, loopback);
-            intent.putExtra(CallActivity.EXTRA_VIDEO_CALL, videoCallEnabled);
-            intent.putExtra(CallActivity.EXTRA_SCREENCAPTURE, useScreencapture);
-            intent.putExtra(CallActivity.EXTRA_CAMERA2, useCamera2);
+            intent.putExtra(CallActivity.EXTRA_ROOMID, getString(R.string.pref_room_server_url_default));
+            intent.putExtra(CallActivity.EXTRA_LOOPBACK, false);
+            intent.putExtra(CallActivity.EXTRA_VIDEO_CALL, false);
+            intent.putExtra(CallActivity.EXTRA_SCREENCAPTURE, false);
+          /*  intent.putExtra(CallActivity.EXTRA_CAMERA2, false);
             intent.putExtra(CallActivity.EXTRA_VIDEO_WIDTH, videoWidth);
             intent.putExtra(CallActivity.EXTRA_VIDEO_HEIGHT, videoHeight);
             intent.putExtra(CallActivity.EXTRA_VIDEO_FPS, cameraFps);
-            intent.putExtra(CallActivity.EXTRA_VIDEO_CAPTUREQUALITYSLIDER_ENABLED, captureQualitySlider);
+            intent.putExtra(CallActivity.EXTRA_VIDEO_CAPTUREQUALITYSLIDER_ENABLED, false);
             intent.putExtra(CallActivity.EXTRA_VIDEO_BITRATE, videoStartBitrate);
             intent.putExtra(CallActivity.EXTRA_VIDEOCODEC, videoCodec);
             intent.putExtra(CallActivity.EXTRA_HWCODEC_ENABLED, hwCodec);
@@ -515,11 +518,12 @@ public class ConnectActivity extends Activity {
             intent.putExtra(CallActivity.EXTRA_DISPLAY_HUD, displayHud);
             intent.putExtra(CallActivity.EXTRA_TRACING, tracing);
             intent.putExtra(CallActivity.EXTRA_CMDLINE, commandLineRun);
-            intent.putExtra(CallActivity.EXTRA_RUNTIME, runTimeMs);
+            intent.putExtra(CallActivity.EXTRA_RUNTIME, runTimeMs);*/
 
             intent.putExtra(CallActivity.EXTRA_DATA_CHANNEL_ENABLED, dataChannelEnabled);
 
-            if (useValuesFromIntent) {
+           /* if (useValuesFromIntent) {
+                Log.v("useValuesFromIntent","useValuesFromIntent");
                 if (getIntent().hasExtra(CallActivity.EXTRA_VIDEO_FILE_AS_CAMERA)) {
                     String videoFileAsCamera =
                             getIntent().getStringExtra(CallActivity.EXTRA_VIDEO_FILE_AS_CAMERA);
@@ -543,12 +547,11 @@ public class ConnectActivity extends Activity {
                             getIntent().getIntExtra(CallActivity.EXTRA_SAVE_REMOTE_VIDEO_TO_FILE_HEIGHT, 0);
                     intent.putExtra(CallActivity.EXTRA_SAVE_REMOTE_VIDEO_TO_FILE_HEIGHT, videoOutHeight);
                 }
-            }
+            }*/
 
             startActivityForResult(intent, CONNECTION_REQUEST);
         }
     }
-
     private boolean validateUrl(String url) {
         if (URLUtil.isHttpsUrl(url) || URLUtil.isHttpUrl(url)) {
             return true;
