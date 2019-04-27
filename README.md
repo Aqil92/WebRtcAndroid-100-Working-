@@ -79,8 +79,6 @@ cp out/arm/libjingle_peerconnection_so.so ../libs/armeabi-v7a/libjingle_peerconn
 echo "task has finished"
 exit 0
 
-# scp /Users/duqian/Downloads/webrtc_arm.sh nonolive@192.168.0.18:/home/nonolive/webrtc/android/
-```
 
 
 
@@ -88,7 +86,7 @@ exit 0
 Maybe I will share more articles about webrtc in the future.
 
 ### Thanks to WebRTC team！
-Dusan's E-mail: duqian2010@gmail.com
+Dusan's E-mail: aqil.mohd.92@gmail.com
 
-WebRTC Demos:[webrtc-android-demo-apprtc](https://github.com/duqian291902259/webrtc-android-demo-apprtc)
+WebRTC Demos:[webrtc-android-demo-apprtc](https://github.com/Aqil92/WebRtcAndroid-100-Working)
 
